@@ -1,4 +1,4 @@
-# CloudFormation DynamoDB Table Template Repository
+# CloudFormation SNS Topic Template Repository
 
 <!-- Row 1: Status - Most Important -->
 [![Release](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns/actions/workflows/release.yaml/badge.svg)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)&nbsp;[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)&nbsp;[![Issues](https://img.shields.io/github/issues/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns/issues)&nbsp;[![Last Commit](https://img.shields.io/github/last-commit/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns/commits)
@@ -7,7 +7,7 @@
 [![Top Language](https://img.shields.io/github/languages/top/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)&nbsp;[![Commits](https://img.shields.io/github/commit-activity/t/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns/commits)
 
 <!-- Row 3: Tech Stack -->
-[![CloudFormation](https://img.shields.io/badge/CloudFormation-IaC-orange?logo=amazon&logoColor=white)](https://aws.amazon.com/cloudformation/)&nbsp;[![DynamoDB](https://img.shields.io/badge/DynamoDB-NoSQL-brightgreen?logo=amazon&logoColor=white)](https://aws.amazon.com/dynamodb/)&nbsp;[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-D97757?logo=anthropic&logoColor=white)](https://claude.ai/)
+[![CloudFormation](https://img.shields.io/badge/CloudFormation-IaC-orange?logo=amazon&logoColor=white)](https://aws.amazon.com/cloudformation/)&nbsp;[![SNS](https://img.shields.io/badge/SNS-Pub%2FSub-brightgreen?logo=amazon&logoColor=white)](https://aws.amazon.com/sns/)&nbsp;[![Built with Claude Code](https://img.shields.io/badge/Built_with-Claude_Code-D97757?logo=anthropic&logoColor=white)](https://claude.ai/)
 
 <!-- Row 4: Repository Info -->
 [![Files](https://img.shields.io/github/directory-file-count/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)&nbsp;[![Repo Size](https://img.shields.io/github/repo-size/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)&nbsp;[![Release Date](https://img.shields.io/github/release-date/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns)](https://github.com/subhamay-bhattacharyya-cfn/cfn-nested-aws-sns/releases)
@@ -15,7 +15,7 @@
 <!-- Row 5: Custom Metrics -->
 [![Custom Endpoint](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bsubhamay/15cfe9b1efbc73710f3f39ffc2d1caab/raw/cfn-nested-aws-sns.json)](https://gist.github.com/subhamay-bhattacharyya/15cfe9b1efbc73710f3f39ffc2d1caab)
 
-This repository contains a nested CloudFormation template for deploying DynamoDB tables with flexible configuration, security best practices, and support for advanced features like streams, indexes, and encryption.
+This repository contains a nested CloudFormation template for creating **Amazon SNS topics** with standard or FIFO type, consistent naming, optional KMS encryption, and optional cross-account access.
 
 ## Overview
 
@@ -23,129 +23,73 @@ This is a **nested stack template** designed to be invoked from a parent/root Cl
 
 ## Template Files
 
-### CloudFormation Templates
+### CloudFormation Template
 
-- **`templates/dynamodb-table.yaml`** — Nested template for DynamoDB table creation with support for:
-  - Flexible billing modes (on-demand or provisioned)
-  - Custom partition and sort keys
-  - Local Secondary Indexes (LSI)
-  - Global Secondary Indexes (GSI)
-  - DynamoDB Streams
-  - Point-in-time recovery
-  - TTL (Time-to-Live)
-  - KMS encryption
+- **`cloudformation/template.yaml`** — Nested template for SNS topic creation with support for:
+  - Standard or FIFO topics
+  - Predictable topic naming with optional CI suffix
+  - KMS encryption with a customer-managed key
+  - Cross-account publish/subscribe through a topic policy
 
-### Parameter Files
+### Configuration Files
 
-- **`parameters/dynamodb-dev.json`** — Development environment parameters
-- **`parameters/dynamodb-staging.json`** — Staging environment parameters
-- **`parameters/dynamodb-prod.json`** — Production environment parameters
+- **`cloudformation/parameters.json`** — Parameter values used by CI (`Environment`, `CiSuffix`)
+- **`cloudformation/stack-config.json`** — Stack name, template file, and parameter file used by CI
 
 ## Template Features
 
-### DynamoDB Table Template (dynamodb-table.yaml)
-
-- ✅ **Flexible Billing** — On-demand (PAY_PER_REQUEST) or provisioned capacity
-- ✅ **Custom Key Schema** — Configurable partition and sort keys with multiple data types
-- ✅ **Local Secondary Indexes** — LSI support for alternative sort keys on the same partition key
-- ✅ **Global Secondary Indexes** — GSI with optional sort key and independent provisioning
-- ✅ **DynamoDB Streams** — Enable change data capture with multiple view types
-- ✅ **Point-in-Time Recovery** — Restore tables to any point in time
-- ✅ **TTL (Time-to-Live)** — Automatic item expiration
-- ✅ **KMS Encryption** — Support for customer-managed or AWS-managed keys
-- ✅ **Smart Table Naming** — Project prefix, account ID, environment, region with optional CI suffix
-- ✅ **Data Retention** — Automatic retention policy (no deletion on stack removal)
+- ✅ **Standard or FIFO Topics** — Selected with `TopicType`
+- ✅ **FIFO Content-Based Deduplication** — Optional, FIFO topics only
+- ✅ **Smart Topic Naming** — Project prefix, base name, environment, region, with optional CI suffix
+- ✅ **KMS Encryption** — Pass a key alias, ARN, or key ID; empty leaves the topic unencrypted
+- ✅ **Cross-Account Access** — Topic policy granting `sns:Publish` and/or `sns:Subscribe` to listed account IDs
+- ✅ **Export Values** — Topic ARN and name exported for cross-stack references
 
 ## Parameters
 
-### Table Naming & Environment
+### Topic Naming & Environment
 
 | Parameter | Type | Default | Description |
 | ----------- | ------ | --------- | ------------- |
-| `ProjectName` | String | `proj-ztc` | Project name prefix (lowercase, alphanumeric, hyphens only) |
-| `TableBaseName` | String | `dynamodb-table` | Base name for the DynamoDB table |
-| `Environment` | String | `devl` | Deployment environment (devl, stag, prod) |
-| `CiSuffix` | String | `""` | Optional CI suffix to append to table name (e.g., pipeline ID) |
+| `ProjectName` | String | `proj-ztc` | Project name prefix (lowercase letters, numbers, hyphens; max 20 characters) |
+| `SnsTopicBaseName` | String | `sns-topic` | Base name for the topic (letters, numbers, hyphens, underscores; max 60 characters) |
+| `Environment` | String | `devl` | Deployment environment (lowercase letters, numbers, hyphens) |
+| `CiSuffix` | String | `""` | Optional suffix appended to the topic name (e.g., pipeline ID; max 30 characters) |
 
-### Billing & Throughput
-
-| Parameter | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
-| `BillingMode` | String | `PAY_PER_REQUEST` | Billing mode (PAY_PER_REQUEST or PROVISIONED) |
-| `ProvisionedReadCapacity` | Number | `5` | Read capacity units (1-40000, only for PROVISIONED mode) |
-| `ProvisionedWriteCapacity` | Number | `5` | Write capacity units (1-40000, only for PROVISIONED mode) |
-
-### Primary Key Configuration
+### Topic Type
 
 | Parameter | Type | Default | Description |
 | ----------- | ------ | --------- | ------------- |
-| `PartitionKeyName` | String | `PK` | Name of the partition key attribute |
-| `PartitionKeyType` | String | `S` | Data type: S (String), N (Number), or B (Binary) |
-| `SortKeyName` | String | `SK` | Name of the sort key (leave empty for no sort key) |
-| `SortKeyType` | String | `S` | Data type: S (String), N (Number), or B (Binary) |
+| `TopicType` | String | `Standard` | `Standard` or `FIFO`. FIFO topic names get the `.fifo` suffix |
+| `ContentBasedDeduplication` | String | `false` | Enable content-based deduplication (`true` or `false`). Only applies to FIFO topics |
 
-### Encryption & Security
+### Encryption
 
 | Parameter | Type | Default | Description |
 | ----------- | ------ | --------- | ------------- |
-| `KmsKey` | String | `SB-KMS` | KMS key for encryption (name, alias, or ARN; empty for AWS-managed key) |
+| `KmsKeyId` | String | `""` | KMS key to encrypt the topic. Accepts an alias (`alias/my-key`), a key ARN, a key ID, or a multi-Region key ID (`mrk-...`). Empty means no server-side encryption |
 
-### Streams & CDC
-
-| Parameter | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
-| `EnableStreams` | String | `false` | Enable DynamoDB Streams (true or false) |
-| `StreamViewType` | String | `NEW_AND_OLD_IMAGES` | Stream info: KEYS_ONLY, NEW_IMAGE, OLD_IMAGE, or NEW_AND_OLD_IMAGES |
-
-### Backup & Recovery
+### Cross-Account Access
 
 | Parameter | Type | Default | Description |
 | ----------- | ------ | --------- | ------------- |
-| `EnablePointInTimeRecovery` | String | `false` | Enable point-in-time recovery (true or false) |
-
-### TTL Configuration
-
-| Parameter | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
-| `EnableTTL` | String | `false` | Enable TTL for automatic item expiration (true or false) |
-| `TTLAttributeName` | String | `ExpirationTime` | Name of the TTL attribute |
-
-### Local Secondary Indexes
-
-| Parameter | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
-| `LSI1Enabled` | String | `false` | Enable Local Secondary Index 1 (requires sort key on base table) |
-| `LSI1AttributeName` | String | `LSI1SK` | Sort key attribute name for LSI1 |
-| `LSI1AttributeType` | String | `S` | Data type: S (String), N (Number), or B (Binary) |
-
-### Global Secondary Indexes
-
-| Parameter | Type | Default | Description |
-| ----------- | ------ | --------- | ------------- |
-| `GSI1Enabled` | String | `false` | Enable Global Secondary Index 1 |
-| `GSI1PartitionKeyName` | String | `GSI1PK` | Partition key attribute name for GSI1 |
-| `GSI1PartitionKeyType` | String | `S` | Data type: S (String), N (Number), or B (Binary) |
-| `GSI1SortKeyName` | String | `""` | Optional sort key attribute name for GSI1 |
-| `GSI1SortKeyType` | String | `S` | Data type: S (String), N (Number), or B (Binary) |
-| `GSI1ReadCapacity` | Number | `5` | Read capacity for GSI1 (only for PROVISIONED mode) |
-| `GSI1WriteCapacity` | Number | `5` | Write capacity for GSI1 (only for PROVISIONED mode) |
+| `CrossAccountIds` | String | `""` | Comma-separated 12-digit AWS account IDs to grant access (e.g., `111122223333,444455556666`). Empty creates no topic policy |
+| `CrossAccountActions` | String | `sns:Publish` | Actions granted to `CrossAccountIds`: `sns:Publish`, `sns:Subscribe`, or `sns:Publish,sns:Subscribe` |
 
 ## Outputs
 
-### DynamoDB Table Template Outputs
-
 | Output | Type | Description |
 | ----------- | ------ | ------------- |
-| `TableName` | String | Name of the created DynamoDB table (exported for cross-stack reference) |
-| `TableArn` | String | ARN of the created DynamoDB table (exported for cross-stack reference) |
-| `StreamArn` | String | ARN of the DynamoDB Stream (only when EnableStreams is true) |
+| `TopicArn` | String | ARN of the SNS topic (exported as `<StackName>-TopicArn`) |
+| `TopicName` | String | Name of the SNS topic (exported as `<StackName>-TopicName`) |
+| `CrossAccountPolicyApplied` | String | `true` if a cross-account topic policy was created, otherwise `false` |
 
 ## Usage
 
 ### 1. Upload Template to S3
 
 ```bash
-aws s3 cp templates/dynamodb-table.yaml s3://your-cfn-bucket/templates/dynamodb-table.yaml
+aws s3 cp cloudformation/template.yaml s3://your-cfn-bucket/templates/sns-topic.yaml
 ```
 
 ### 2. Reference from Parent Stack
@@ -153,203 +97,159 @@ aws s3 cp templates/dynamodb-table.yaml s3://your-cfn-bucket/templates/dynamodb-
 In your parent/root CloudFormation template:
 
 ```yaml
-DynamoDBTableNestedStack:
+SnsTopicNestedStack:
   Type: AWS::CloudFormation::Stack
   Properties:
-    TemplateURL: https://s3.amazonaws.com/your-cfn-bucket/templates/dynamodb-table.yaml
+    TemplateURL: https://s3.amazonaws.com/your-cfn-bucket/templates/sns-topic.yaml
     Parameters:
       ProjectName: !Ref ProjectName
-      TableBaseName: users-table
+      SnsTopicBaseName: alerts
       Environment: !Ref Environment
-      BillingMode: PAY_PER_REQUEST
-      PartitionKeyName: UserID
-      PartitionKeyType: S
-      SortKeyName: CreatedAt
-      SortKeyType: S
-      EnableStreams: "true"
-      EnablePointInTimeRecovery: "true"
-      EnableTTL: "false"
-      GSI1Enabled: "true"
-      GSI1PartitionKeyName: Email
-      GSI1PartitionKeyType: S
+      TopicType: FIFO
+      ContentBasedDeduplication: "true"
+      KmsKeyId: alias/my-sns-key
+      CrossAccountIds: 111122223333
+      CrossAccountActions: sns:Publish
     Tags:
       - Key: Environment
         Value: !Ref Environment
 
 Outputs:
-  TableName:
-    Value: !GetAtt DynamoDBTableNestedStack.Outputs.TableName
-  TableArn:
-    Value: !GetAtt DynamoDBTableNestedStack.Outputs.TableArn
-  StreamArn:
-    Value: !GetAtt DynamoDBTableNestedStack.Outputs.StreamArn
+  TopicArn:
+    Value: !GetAtt SnsTopicNestedStack.Outputs.TopicArn
+  TopicName:
+    Value: !GetAtt SnsTopicNestedStack.Outputs.TopicName
 ```
 
 ### 3. Deploy Using AWS CLI
 
-#### Example 1: Basic On-Demand Table
+`aws cloudformation deploy` takes parameter overrides as `KEY=VALUE` pairs.
+
+#### Example 1: Basic Standard Topic
 
 ```bash
-aws cloudformation create-stack \
-  --stack-name myapp-dynamodb-dev \
-  --template-body file://templates/dynamodb-table.yaml \
-  --parameters file://parameters/dynamodb-dev.json
+aws cloudformation deploy \
+  --template-file cloudformation/template.yaml \
+  --stack-name myapp-sns-dev \
+  --parameter-overrides \
+    ProjectName=myapp \
+    SnsTopicBaseName=alerts \
+    Environment=devl \
+  --region us-east-1
 ```
 
-#### Example 2: Provisioned Capacity with GSI
+#### Example 2: FIFO Topic with Content-Based Deduplication
 
 ```bash
-aws cloudformation create-stack \
-  --stack-name myapp-dynamodb-prod \
-  --template-body file://templates/dynamodb-table.yaml \
-  --parameters \
-    ParameterKey=ProjectName,ParameterValue=myapp \
-    ParameterKey=TableBaseName,ParameterValue=orders \
-    ParameterKey=Environment,ParameterValue=prod \
-    ParameterKey=BillingMode,ParameterValue=PROVISIONED \
-    ParameterKey=ProvisionedReadCapacity,ParameterValue=100 \
-    ParameterKey=ProvisionedWriteCapacity,ParameterValue=100 \
-    ParameterKey=PartitionKeyName,ParameterValue=OrderID \
-    ParameterKey=PartitionKeyType,ParameterValue=S \
-    ParameterKey=SortKeyName,ParameterValue=OrderDate \
-    ParameterKey=SortKeyType,ParameterValue=S \
-    ParameterKey=GSI1Enabled,ParameterValue=true \
-    ParameterKey=GSI1PartitionKeyName,ParameterValue=CustomerID \
-    ParameterKey=GSI1PartitionKeyType,ParameterValue=S \
-    ParameterKey=GSI1SortKeyName,ParameterValue=OrderDate \
-    ParameterKey=GSI1SortKeyType,ParameterValue=S \
-    ParameterKey=GSI1ReadCapacity,ParameterValue=50 \
-    ParameterKey=GSI1WriteCapacity,ParameterValue=50
+aws cloudformation deploy \
+  --template-file cloudformation/template.yaml \
+  --stack-name myapp-orders-prod \
+  --parameter-overrides \
+    ProjectName=myapp \
+    SnsTopicBaseName=orders \
+    Environment=prod \
+    TopicType=FIFO \
+    ContentBasedDeduplication=true \
+  --region us-east-1
 ```
 
-#### Example 3: With Streams and Point-in-Time Recovery
+#### Example 3: Customer-Managed KMS Encryption
 
 ```bash
-aws cloudformation create-stack \
-  --stack-name myapp-dynamodb-events \
-  --template-body file://templates/dynamodb-table.yaml \
-  --parameters \
-    ParameterKey=ProjectName,ParameterValue=myapp \
-    ParameterKey=TableBaseName,ParameterValue=events \
-    ParameterKey=Environment,ParameterValue=prod \
-    ParameterKey=BillingMode,ParameterValue=PAY_PER_REQUEST \
-    ParameterKey=PartitionKeyName,ParameterValue=EventID \
-    ParameterKey=PartitionKeyType,ParameterValue=S \
-    ParameterKey=SortKeyName,ParameterValue=Timestamp \
-    ParameterKey=SortKeyType,ParameterValue=N \
-    ParameterKey=EnableStreams,ParameterValue=true \
-    ParameterKey=StreamViewType,ParameterValue=NEW_AND_OLD_IMAGES \
-    ParameterKey=EnablePointInTimeRecovery,ParameterValue=true
+aws cloudformation deploy \
+  --template-file cloudformation/template.yaml \
+  --stack-name myapp-sns-secure \
+  --parameter-overrides \
+    ProjectName=myapp \
+    SnsTopicBaseName=sensitive-events \
+    Environment=prod \
+    KmsKeyId=arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012 \
+  --region us-east-1
 ```
 
-#### Example 4: With TTL and LSI
+#### Example 4: Cross-Account Publish Access
 
 ```bash
-aws cloudformation create-stack \
-  --stack-name myapp-dynamodb-sessions \
-  --template-body file://templates/dynamodb-table.yaml \
-  --parameters \
-    ParameterKey=ProjectName,ParameterValue=myapp \
-    ParameterKey=TableBaseName,ParameterValue=sessions \
-    ParameterKey=Environment,ParameterValue=prod \
-    ParameterKey=BillingMode,ParameterValue=PAY_PER_REQUEST \
-    ParameterKey=PartitionKeyName,ParameterValue=SessionID \
-    ParameterKey=PartitionKeyType,ParameterValue=S \
-    ParameterKey=SortKeyName,ParameterValue=UserID \
-    ParameterKey=SortKeyType,ParameterValue=S \
-    ParameterKey=EnableTTL,ParameterValue=true \
-    ParameterKey=TTLAttributeName,ParameterValue=ExpiresAt \
-    ParameterKey=LSI1Enabled,ParameterValue=true \
-    ParameterKey=LSI1AttributeName,ParameterValue=CreatedAt \
-    ParameterKey=LSI1AttributeType,ParameterValue=N
+aws cloudformation deploy \
+  --template-file cloudformation/template.yaml \
+  --stack-name myapp-sns-shared \
+  --parameter-overrides \
+    ProjectName=myapp \
+    SnsTopicBaseName=shared-events \
+    Environment=prod \
+    CrossAccountIds=111122223333,444455556666 \
+    CrossAccountActions=sns:Publish \
+  --region us-east-1
 ```
 
-#### Example 5: With Custom KMS Encryption
+To update cross-account access later, change `CrossAccountIds` or `CrossAccountActions` and redeploy the same stack. The topic policy is updated in place.
+
+#### Example 5: CI Suffix for Ephemeral Deployments
 
 ```bash
-aws cloudformation create-stack \
-  --stack-name myapp-dynamodb-secure \
-  --template-body file://templates/dynamodb-table.yaml \
-  --parameters \
-    ParameterKey=ProjectName,ParameterValue=myapp \
-    ParameterKey=TableBaseName,ParameterValue=sensitive-data \
-    ParameterKey=Environment,ParameterValue=prod \
-    ParameterKey=BillingMode,ParameterValue=PROVISIONED \
-    ParameterKey=ProvisionedReadCapacity,ParameterValue=10 \
-    ParameterKey=ProvisionedWriteCapacity,ParameterValue=10 \
-    ParameterKey=PartitionKeyName,ParameterValue=DataID \
-    ParameterKey=PartitionKeyType,ParameterValue=S \
-    ParameterKey=KmsKey,ParameterValue=arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
-```
-
-#### Example 6: With CI Suffix
-
-```bash
-aws cloudformation create-stack \
-  --stack-name myapp-dynamodb-ci \
-  --template-body file://templates/dynamodb-table.yaml \
-  --parameters \
-    ParameterKey=ProjectName,ParameterValue=myapp \
-    ParameterKey=TableBaseName,ParameterValue=test-table \
-    ParameterKey=Environment,ParameterValue=test \
-    ParameterKey=CiSuffix,ParameterValue=$CI_PIPELINE_ID \
-    ParameterKey=BillingMode,ParameterValue=PAY_PER_REQUEST \
-    ParameterKey=PartitionKeyName,ParameterValue=PK \
-    ParameterKey=PartitionKeyType,ParameterValue=S
+aws cloudformation deploy \
+  --template-file cloudformation/template.yaml \
+  --stack-name myapp-sns-ci \
+  --parameter-overrides \
+    ProjectName=myapp \
+    SnsTopicBaseName=test-topic \
+    Environment=devl \
+    CiSuffix=$CI_PIPELINE_ID \
+  --region us-east-1
 ```
 
 #### Monitoring Stack Creation
 
 ```bash
-# Wait for stack creation to complete
-aws cloudformation wait stack-create-complete --stack-name myapp-dynamodb-dev
-
 # Get stack outputs
 aws cloudformation describe-stacks \
-  --stack-name myapp-dynamodb-dev \
+  --stack-name myapp-sns-dev \
   --query 'Stacks[0].Outputs' \
   --output table
 
-# Get table details
-TABLE_NAME=$(aws cloudformation describe-stacks \
-  --stack-name myapp-dynamodb-dev \
-  --query 'Stacks[0].Outputs[?OutputKey==`TableName`].OutputValue' \
+# Get topic details
+TOPIC_ARN=$(aws cloudformation describe-stacks \
+  --stack-name myapp-sns-dev \
+  --query 'Stacks[0].Outputs[?OutputKey==`TopicArn`].OutputValue' \
   --output text)
 
-aws dynamodb describe-table --table-name $TABLE_NAME
+aws sns get-topic-attributes --topic-arn $TOPIC_ARN
 ```
 
-## Table Naming Convention
-
-The template generates table names using the following pattern:
+## Topic Naming Convention
 
 **Without CI Suffix:**
 
 ```bash
-{ProjectName}-{TableBaseName}-{AccountId}-{Environment}-{Region}
+{ProjectName}-{SnsTopicBaseName}-{Environment}-{Region}
 ```
 
-Example: `myapp-users-table-123456789012-devl-us-east-1`
+Example: `myapp-alerts-devl-us-east-1`
 
 **With CI Suffix:**
 
 ```bash
-{ProjectName}-{TableBaseName}-{AccountId}-{Environment}-{Region}-{CiSuffix}
+{ProjectName}-{SnsTopicBaseName}-{Environment}-{Region}-{CiSuffix}
 ```
 
-Example: `myapp-users-table-123456789012-devl-us-east-1-pipeline-12345`
+Example: `myapp-alerts-devl-us-east-1-pipeline-12345`
+
+**FIFO topics** add `.fifo` to the end, as AWS requires for FIFO topic names:
+
+Example: `myapp-orders-prod-us-east-1.fifo`
+
+## Notes on Encryption and Cross-Account Access
+
+- A KMS-encrypted topic needs the publisher to have `kms:GenerateDataKey` on the key, and the subscriber to have `kms:Decrypt`. Cross-account principals need access in the **KMS key policy** as well as the topic policy.
+- The cross-account topic policy is created only when `CrossAccountIds` is set. Leaving it empty keeps the default topic policy, which allows only the owning account.
 
 ## Best Practices Implemented
 
-- ✅ KMS encryption enabled by default (AWS-managed key)
-- ✅ Flexible billing modes (on-demand for dev, provisioned for production)
-- ✅ Point-in-time recovery support for disaster recovery
-- ✅ DynamoDB Streams for change data capture
-- ✅ TTL support for automatic data expiration
-- ✅ LSI and GSI support for flexible querying patterns
-- ✅ Smart table naming with project prefix, account ID, environment, and region
+- ✅ Predictable topic naming with project prefix, environment, and region
 - ✅ Optional CI suffix support for ephemeral test deployments
-- ✅ Data retention policy (table not deleted when stack is removed)
+- ✅ Optional KMS encryption with customer-managed keys
+- ✅ FIFO topics with optional content-based deduplication
+- ✅ Explicit, parameter-driven cross-account access
 - ✅ Automatic tagging for resource management
 - ✅ Export values for cross-stack references
 
